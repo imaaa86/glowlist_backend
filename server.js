@@ -2,6 +2,9 @@ const express = require('express')
 const cors = require('cors')
 const app= express ()
 
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+
 const mysql = require('mysql2')
 app.use(cors())
 
@@ -81,7 +84,7 @@ app.put('/produk/:id_produk', (req, res) => {
     db.query(sql, [judul, deskripsi, harga, id_kategori, id_produk], (err, result) => {
         if (err) return res.status(500).json({ error: err.sqlMessage });
 
-////////////TAMBAHAN UNTUK PRODUK TIDAK DITEMUKAN///////////
+//TAMBAHAN UNTUK PRODUK TIDAK DITEMUKAN//
     if (result.affectedRows === 0) { 
         return res.status(404).json({ message: 'Produk tidak ditemukan'
         });
@@ -90,6 +93,7 @@ app.put('/produk/:id_produk', (req, res) => {
         res.json({ message: 'Produk berhasil diupdate!' })
     })
 })
+
 
 
 app.delete('/produk/:id_produk', (req, res) => {
@@ -106,6 +110,46 @@ app.delete('/produk/:id_produk', (req, res) => {
         res.json({ message: 'Produk berhasil dihapus!' });
     });
 });
+
+//----------------------------------POST PENGGUNA--------------------------------------//
+app.post('/pengguna', async (req, res) => {
+    const { nama, email, password, no_hp } = req.body;
+    if (!nama || !email || !password) {
+        return res.status(400).json({
+            message: 'Nama, email, dan password wajib diisi'
+        });
+    }
+
+    try {
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        const sql = 'INSERT INTO pengguna (nama, email, password, no_hp) VALUES (?, ?, ?, ?)';
+        db.query(sql, [nama, email, hashedPassword, no_hp], (err, result) => {
+            if (err) {
+
+                if (err.code === 'ER_DUP_ENTRY') {
+                    return res.status(400).json({
+                        message: 'Email sudah terdaftar, gunakan email lain'
+                    });
+                }
+
+                return res.status(500).json({
+                    error: err.sqlMessage
+                });
+            }
+
+            res.json({
+                message: 'Akun berhasil dibuat!',
+                id_pengguna: result.insertId
+            });
+        });
+
+    } catch (err) {
+        res.status(500).json({
+            error: 'Gagal mengenkripsi password'
+        });
+    }
+});
+//----------------------------------------SELESAI POST PENGGUNA---------------------------------------
 
 app.listen(PORT, () => {
     console.log(`Server GlowList jalan di http://localhost:${PORT}`)
