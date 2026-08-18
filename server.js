@@ -33,7 +33,7 @@ app.get('/', (req, res) => {
 app.get('/produk', (req, res) => {
     const sql = 'SELECT * FROM produk'
     db.query(sql, (err, results) => {
-        if (err) return res.status(500).json({ eeror: err })
+        if (err) return res.status(500).json({ error: err })
             res.json(results)
     })
 })
