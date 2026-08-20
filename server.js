@@ -57,7 +57,7 @@ app.get('/kategori', (req, res) => {
     })
 })
 
-app.post('/produk', (req, res) => {
+app.post('/produk', authJWT, (req, res) => {
     const { judul, deskripsi, harga, id_kategori } = req.body
 
     if (!deskripsi) {
@@ -113,6 +113,25 @@ app.delete('/produk/:id_produk', authJWT, (req, res) => {
     });
 });
 
+//----------------------------------GET PENGGUNA--------------------------------------//
+app.get('/pengguna/me', authJWT, (req,res) => {
+    const id_pengguna = req.user.id
+    const sql = `SELECT id_pengguna, nama, email, no_hp FROM pengguna WHERE id_pengguna = ?`
+
+    db.query(sql, [id_pengguna], (err,result) => {
+        if(err) {
+            return res.status(500).json({ error: err.sqlMessage })
+        }
+
+        if (result.length === 0) {
+            return res.status(404).json({ message: 'Pengguna tidak ditemukan' })
+        }
+
+        res.json(result[0])
+    })
+})
+//----------------------------------SELESAI GET PENGGUNA--------------------------------------//
+
 //----------------------------------POST PENGGUNA--------------------------------------//
 app.post('/pengguna', async (req, res) => {
     const { nama, email, password, no_hp } = req.body;
@@ -153,7 +172,7 @@ app.post('/pengguna', async (req, res) => {
 });
 //----------------------------------------SELESAI POST PENGGUNA---------------------------------------
 
-//----------------------------------------POst LOGIN---------------------------------------
+//----------------------------------------POST LOGIN--------------------------------------------------
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
     const sql = 'SELECT * FROM pengguna WHERE email = ?';
