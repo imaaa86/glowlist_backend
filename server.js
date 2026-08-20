@@ -114,6 +114,7 @@ app.delete('/produk/:id_produk', authJWT, (req, res) => {
 });
 
 //----------------------------------GET PENGGUNA--------------------------------------//
+
 app.get('/pengguna/me', authJWT, (req,res) => {
     const id_pengguna = req.user.id
     const sql = `SELECT id_pengguna, nama, email, no_hp FROM pengguna WHERE id_pengguna = ?`
